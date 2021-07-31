@@ -1,13 +1,21 @@
+/*Calendar file created by Manuel Morteo 
+contains commands:
+    - create default calendar template, 
+    - show calendars,   
+    - opens a certain calendar, 
+    - delete a calendar
+
+*/
 var mongo = require('mongodb').MongoClient
 var url = "mongodb+srv://bluerare:manuel09!@cluster0.4zhfz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
 const { channel } = require('diagnostics_channel');
 const Discord = require('discord.js');
 
-var currentCalendar = '';
-
-var discordDB = 'STScalendar';
-var weekdays = [];
-var workers = [];
+var currentCalendar = ''
+var discordDB = 'STScalendar'
+var weekdays = []
+var insertWorker = ''
+var workers = []
 
 // create a new Discord client
 const client = new Discord.Client()
@@ -61,6 +69,8 @@ client.on('message', message => {
 		message.channel.send('Pong.');
 
 	} 
+
+// MARK CREATE NEW CALENDAR TEMPLATE
     else if (command === 'create-calendar') {
 		if (!args.length) {
 			return message.channel.send(`You didn't provide any name, ${message.author}!`);
@@ -83,20 +93,29 @@ client.on('message', message => {
                 
 
                 message.channel.send("Calendar created in database!");
+                currentCalendar = `${args}`
 
-                
-                dbo.collection(`${args}`).insertMany(newCalendar, function(err,res) {
+                dbo.collection(`${args}`).insertMany(newCalendar, async function(err,res) {
                     if (err) throw err;
                     console.log("new document inserted!");
-                    db.close();
+                    
+                    dbo.collection(`${args}`).find({},{projection: {"_id":0, "dayOfWeek": 1}}).toArray(async function(err, result){
+                        if(err) throw err;
+        
+                        for(var i = 0; i < 5; i++){
+                            weekdays[i] = result[i].dayOfWeek
+                        } 
+                        db.close();
+                        
+                    })
                 })
-
             })
-
         })
+    }
+
+//MARK SHOWING CALENDARS IN DATABASE USING AN EMBEDDED MESSAGE
     
-        //SHOWING CALENDARS IN DATABASE USING AN EMBEDDED MESSAGE
-	} else if(command === 'show-me-calendars'){
+    else if(command === 'show-me-calendars'){
 
         mongo.connect(url, async function(err,db){
             if(err) throw err;
@@ -130,57 +149,92 @@ client.on('message', message => {
                     throw err
                 }
                 db.close();
-            })
-        })
+            });
+        });
     }
-    //OPENS CALENDAR AND DISPLAYS UPDATED INFORMATION
+
+
+//OPENS A CERTAIN CALENDAR AND DISPLAYS UPDATED INFORMATION
      else if(command === 'open-up-calendar'){
 
         if (!args.length) {
 			return message.channel.send(`You didn't provide any name, ${message.author}!`);
 		}
-        console.log(`${args}`);
-        mongo.connect(url,function(err,db){
-            if(err) throw err
-            
-            var dbo = db.db(discordDB)
-
-            //Find all documents in the requested calendar
-            dbo.collection(`${args}`).find({},{projection: {"_id":0, "dayOfWeek": 1}}).toArray(async function(err, result){
-                if(err) throw err;
-                
-
-                for(var i = 0; i < 5; i++){
-                    weekdays[i] = result[i].dayOfWeek 
-                }
-                console.log(result);
-
-                var calendarEmbed = {
-                    color: 0x0099ff,
-                    title: `${args} Calendar`,
-                    description:'Some random description',
-                    fields:[
-                        {name: weekdays[0],  value: "manny  nicj", inline: true},
-                        {name: weekdays[1], value: "", inline: true},
-                        {name: weekdays[2], value: "", inline: true},
-                        {name: weekdays[3], value: "", inline: true},
-                        {name: weekdays[4], value: "", inline: true}
-                    ],
-                    timestamp: new Date(),
-                }
-                //Have user update documents using commands to store into database.
-                message.channel.send({embed: calendarEmbed});
-                db.close();
-            })
-        })
+        currentCalendar = args
+        message.channel.send(`opening up calendar: ${currentCalendar}`);
+        
+        var calendarEmbed = {
+            color: 0x0099ff,
+            title: `${args} Calendar`,
+            description:'Some random description',
+            fields:[
+                {name: weekdays[0],  value: "Manny", inline: true},
+                {name: weekdays[1], value: "James", inline: true},
+                {name: weekdays[2], value: "Soemthing", inline: true},
+                {name: weekdays[3], value: "Random", inline: true},
+                {name: weekdays[4], value: "anther Random", inline: true}
+                ],
+            timestamp: new Date(),
+        }
+        message.channel.send({embed: calendarEmbed});      
 
     }
+
+
+//DELETES A CERTAIN CALENDAR
+    else if(command === 'delete-calendar'){
+        if (!args.length) {
+			return message.channel.send(`You didn't provide any calendar name to delete, ${message.author}!`);
+		}
+        mongo.connect(url, async function(err,db){
+            if (err) throw err
+
+            var dbo = db.db(discordDB);
+
+            dbo.dropCollection(`${args}`, async function(err, delOK){
+                if (err) throw err
+                if (delOK) console.log("Calendar Deleted!");
+                
+                message.channel.send(`${args} calendar deleted!`)
+
+                db.close();
+            })
+
+        })
+    }
+//INSERTING USER NAME AND DAY OF WORK
+    else if (command === 'insert'){
+
+        if (!args.length) {
+			return message.channel.send(`You didn't provide your name, ${message.author}!`);
+		}
+        let userInsert = `${args}`.split(",");
+
+        var object =  {dayOfWeek: userInsert[1], name: userInsert[0]}
+        
+
+        mongo.connect(url, async function(err,db){
+            if(err) throw err;
+
+            var dbo = db.db(discordDB);
+
+            
+
+            dbo.collection(`${currentCalendar}`).insertOne(object, function (err,res){
+                if (err) throw err;
+
+                message.channel.send("Name inserted!")
+                db.close()
+            })
+            
+        }
+    )}
    
-});
+})
 
 
 
 
 // login to Discord with your app's token
 
-client.login('ODY3NTM0ODkxNTE0ODU1NDU1.YPig1A.-DjJA3ceeArcBeou3U9HuXlLncE')
+client.login('ODY3NTM0ODkxNTE0ODU1NDU1.YPig1A.m5VMcKVyjofwg20ZPBi9qVx83xk');
