@@ -8,7 +8,6 @@ contains commands:
 */
 var mongo = require('mongodb').MongoClient
 var url = "mongodb+srv://bluerare:manuel09!@cluster0.4zhfz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
-const { channel } = require('diagnostics_channel');
 const Discord = require('discord.js');
 
 var currentCalendar = ''
@@ -162,6 +161,7 @@ client.on('message', message => {
 		}
         currentCalendar = args
         message.channel.send(`opening up calendar: ${currentCalendar}`);
+    
         
         var calendarEmbed = {
             color: 0x0099ff,
@@ -169,7 +169,7 @@ client.on('message', message => {
             description:'Some random description',
             fields:[
                 {name: weekdays[0],  value: "Manny", inline: true},
-                {name: weekdays[1], value: "James", inline: true},
+                {name: weekdays[1], value:  "random", inline: true},
                 {name: weekdays[2], value: "Soemthing", inline: true},
                 {name: weekdays[3], value: "Random", inline: true},
                 {name: weekdays[4], value: "anther Random", inline: true}
@@ -202,7 +202,8 @@ client.on('message', message => {
 
         })
     }
-//INSERTING USER NAME AND DAY OF WORK
+
+//INSERTING USER NAME FROM DAY OF WORK (Still needs a way to display in embedded msg)
     else if (command === 'insert'){
 
         if (!args.length) {
@@ -210,20 +211,55 @@ client.on('message', message => {
 		}
         let userInsert = `${args}`.split(",");
 
-        var object =  {dayOfWeek: userInsert[1], name: userInsert[0]}
-        
+        var object =  {dayOfWeek: userInsert[1]}
 
-        mongo.connect(url, async function(err,db){
+        mongo.connect(url, async function(err,db){ 
             if(err) throw err;
 
             var dbo = db.db(discordDB);
 
-            
+            dbo.collection(`${currentCalendar}`).findOneAndUpdate(object,{$push:{name:userInsert[0]}}, function (err,res){
+                if (err) throw err;
+                message.channel.send("Name inserted!")
 
-            dbo.collection(`${currentCalendar}`).insertOne(object, function (err,res){
+                dbo.collection(`${currentCalendar}`).find({dayOfWeek:userInsert[1]},{ projection: {_id:0, name:1}}).toArray(async function(err, result){
+                    if(err) throw err;
+
+                    workers = result[0].name.join()
+                    console.log(workers);
+
+
+                    db.close()
+
+                    
+                })
+
+            })
+            
+        }
+    )}
+
+
+//DELETING USER NAME FROM DAY OF WORK (Still needs a way to display in embedded msg)
+    else if(command === 'delete'){
+
+        if (!args.length) {
+			return message.channel.send(`You didn't provide your name, ${message.author}!`);
+		}
+        let userInsert = `${args}`.split(",");
+
+        var object =  {dayOfWeek: userInsert[1]}
+
+        
+        mongo.connect(url, async function(err,db){ 
+            if(err) throw err;
+
+            var dbo = db.db(discordDB);
+
+            dbo.collection(`${currentCalendar}`).findOneAndUpdate(object,{$pull:{name:userInsert[0]}}, function (err,res){
                 if (err) throw err;
 
-                message.channel.send("Name inserted!")
+                message.channel.send(`Name deleted from ${userInsert[1]}!`)
                 db.close()
             })
             
