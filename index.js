@@ -15,6 +15,12 @@ var discordDB = 'STScalendar'
 var weekdays = []
 var insertWorker = ''
 var workers = []
+var insertWeekday = ''
+var mondayWorkers = ["None"]
+var tuesdayWorkers = ["None"]
+var wenesdayWorkers = ["None"]
+var thursdayWorkers = ["None"]
+var fridayWorkers = ["None"]
 
 // create a new Discord client
 const client = new Discord.Client()
@@ -25,7 +31,7 @@ client.once('ready', () => {
 	console.log('Ready!')
 });
 
-
+//This will create a default empty calendar
 var newCalendar = [
     {
         id:1,
@@ -54,6 +60,8 @@ var newCalendar = [
         name: []
     }
 ];
+
+
 
 
 client.on('message', message => {
@@ -153,7 +161,7 @@ client.on('message', message => {
     }
 
 
-//OPENS A CERTAIN CALENDAR AND DISPLAYS UPDATED INFORMATION
+//OPENS A CERTAIN CALENDAR AND READS AND DISPLAYS UPDATED INFORMATION
      else if(command === 'open-up-calendar'){
 
         if (!args.length) {
@@ -161,18 +169,17 @@ client.on('message', message => {
 		}
         currentCalendar = args
         message.channel.send(`opening up calendar: ${currentCalendar}`);
-    
         
         var calendarEmbed = {
             color: 0x0099ff,
             title: `${args} Calendar`,
             description:'Some random description',
             fields:[
-                {name: weekdays[0],  value: "Manny", inline: true},
-                {name: weekdays[1], value:  "random", inline: true},
-                {name: weekdays[2], value: "Soemthing", inline: true},
-                {name: weekdays[3], value: "Random", inline: true},
-                {name: weekdays[4], value: "anther Random", inline: true}
+                {name: weekdays[0],  value: mondayWorkers, inline: true},
+                {name: weekdays[1], value:  tuesdayWorkers, inline: true},
+                {name: weekdays[2], value:  wenesdayWorkers, inline: true},
+                {name: weekdays[3], value: thursdayWorkers, inline: true},
+                {name: weekdays[4], value: fridayWorkers, inline: true}
                 ],
             timestamp: new Date(),
         }
@@ -227,6 +234,21 @@ client.on('message', message => {
 
                     workers = result[0].name.join()
                     console.log(workers);
+                    
+                    insertWeekday = userInsert[1]
+                    console.log(insertWeekday)
+
+                    if (userInsert[1] === "Monday"){
+                        mondayWorkers = workers
+                    } else if(userInsert[1] === "Tuesday") {
+                        tuesdayWorkers = workers
+                    } else if (userInsert[1] === "Wenesday"){
+                        wenesdayWorkers = workers
+                    } else if (userInsert[1] === "Thursday") {
+                        thursdayWorkers = workers
+                    } else if (userInsert[1] === "Friday") {
+                        fridayWorkers = workers
+                    }
 
 
                     db.close()
@@ -256,8 +278,71 @@ client.on('message', message => {
 
             var dbo = db.db(discordDB);
 
-            dbo.collection(`${currentCalendar}`).findOneAndUpdate(object,{$pull:{name:userInsert[0]}}, function (err,res){
+            dbo.collection(`${currentCalendar}`).findOneAndUpdate(object,{$pull:{name:userInsert[0]}}, function (err,result){
                 if (err) throw err;
+
+                console.log(result.value.name)
+                
+                if(userInsert[1] === "Monday"){
+                    
+                    const index = result.value.name.indexOf(userInsert[0])
+
+                    if (index > -1) {
+                        //Test the splice, make sure it removes all strings with the same name
+                        result.value.name.splice(index,1)
+                    }
+                    workers = result.value.name.join()
+                    mondayWorkers = workers
+
+
+                } else if(userInsert[1] === "Tuesday"){
+                    const index = result.value.name.indexOf(userInsert[0])
+
+                    if (index > -1) {
+                        //Test the splice, make sure it removes all strings with the same name
+                        result.value.name.splice(index,1)
+                    }
+                    workers = result.value.name.join()
+                    tuesdayWorkers = workers
+
+
+                } else if(userInsert[1] === "Wenesday"){
+                    const index = result.value.name.indexOf(userInsert[0])
+
+                    if (index > -1) {
+                        //Test the splice, make sure it removes all strings with the same name
+                        result.value.name.splice(index,1)
+                    }
+
+                    workers = result.value.name.join()
+                    wenesdayWorkers = workers
+
+
+                } else if(userInsert[1] === "Thursday"){
+                    const index = result.value.name.indexOf(userInsert[0])
+
+                    if (index > -1) {
+                        //Test the splice, make sure it removes all strings with the same name
+                        result.value.name.splice(index,1)
+                    }
+
+                    workers = result.value.name.join()
+                    thursdayWorkers = workers
+
+
+                } else if(userInsert[1] === "Friday"){
+                    const index = result.value.name.indexOf(userInsert[0])
+
+                    if (index > -1) {
+                        //Test the splice, make sure it removes all strings with the same name
+                        result.value.name.splice(index,1)
+                    }
+                    workers = result.value.name.join()
+                    fridayWorkers = workers
+
+
+                }
+                console.log(mondayWorkers)
 
                 message.channel.send(`Name deleted from ${userInsert[1]}!`)
                 db.close()
