@@ -7,9 +7,11 @@ contains commands:
 
 */
 var mongo = require('mongodb').MongoClient
-var url = "mongodb+srv://bluerare:manuel09!@cluster0.4zhfz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
+const { BOTTOKEN, DBTOKEN } = require('./config.json');
 const Discord = require('discord.js');
+const emoji = require('node-emoji');
 
+var url = DBTOKEN
 var currentCalendar = ''
 var discordDB = 'STScalendar'
 var weekdays = []
@@ -30,6 +32,9 @@ let prefix = '$'
 client.once('ready', () => {
 	console.log('Ready!')
 });
+function capitalizeFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
 
 //This will create a default empty calendar
 var newCalendar = [
@@ -63,7 +68,7 @@ var newCalendar = [
 
 
 
-
+//Fold code if needed 
 client.on('message', message => {
 	if (!message.content.startsWith(prefix) || message.author.bot) return;
 
@@ -94,17 +99,19 @@ client.on('message', message => {
                 if(err){
                     
                     message.channel.send("Sorry there is already a calendar that exists!")
-                    console.log("collection already created...")
+                    console.log("calendar already created...")
                     return;
                 }
                 
 
                 message.channel.send("Calendar created in database!");
+                message.channel.send("To access calendar, just say ```$open-up-calender <calendar name>```")
+
                 currentCalendar = `${args}`
 
                 dbo.collection(`${args}`).insertMany(newCalendar, async function(err,res) {
                     if (err) throw err;
-                    console.log("new document inserted!");
+                    console.log("new default template inserted!");
                     
                     dbo.collection(`${args}`).find({},{projection: {"_id":0, "dayOfWeek": 1}}).toArray(async function(err, result){
                         if(err) throw err;
@@ -169,11 +176,27 @@ client.on('message', message => {
 		}
         currentCalendar = args
         message.channel.send(`opening up calendar: ${currentCalendar}`);
+
+        //If these variables are empty after deleting user, embed field value must be set to "None" to avoid null error
+        if(mondayWorkers === "" || mondayWorkers === " "){
+            mondayWorkers = "None"
+        } else if (tuesdayWorkers === "" || tuesdayWorkers === " ") {
+            tuesdayWorkers = "None"
+        } else if (wenesdayWorkers === ""|| wenesdayWorkers === " ") {
+            wenesdayWorkers = "None"
+        }else if (thursdayWorkers === "" || thursdayWorkers === " ") {
+            thursdayWorkers = "None"
+        }else if(fridayWorkers === "" || fridayWorkers === " ") {
+            fridayWorkers = "None"
+        }
         
         var calendarEmbed = {
             color: 0x0099ff,
-            title: `${args} Calendar`,
-            description:'Some random description',
+            title: `${emoji.get('calendar')} ${args} Calendar`,
+            thumbnail: {
+                url: "https://d1yjjnpx0p53s8.cloudfront.net/styles/logo-thumbnail/s3/052016/untitled-1_11.png?itok=ccxA07m1"
+            },
+            description:'Our Calendar for the 5 day week!',
             fields:[
                 {name: weekdays[0],  value: mondayWorkers, inline: true},
                 {name: weekdays[1], value:  tuesdayWorkers, inline: true},
@@ -183,7 +206,9 @@ client.on('message', message => {
                 ],
             timestamp: new Date(),
         }
-        message.channel.send({embed: calendarEmbed});      
+        message.channel.send({embed: calendarEmbed});
+        message.channel.send('To insert a name on a specific day, say: ```$insert <Your First Name> <Day of the Week>``` ')      
+        message.channel.send('To delete your name on a specific day, say: ```$delete <Your First Name> <Day of the Week>``` ')  
 
     }
 
@@ -217,6 +242,7 @@ client.on('message', message => {
 			return message.channel.send(`You didn't provide your name, ${message.author}!`);
 		}
         let userInsert = `${args}`.split(",");
+        userInsert[1] = capitalizeFirstLetter(userInsert[1]);
 
         var object =  {dayOfWeek: userInsert[1]}
 
@@ -227,30 +253,27 @@ client.on('message', message => {
 
             dbo.collection(`${currentCalendar}`).findOneAndUpdate(object,{$push:{name:userInsert[0]}}, function (err,res){
                 if (err) throw err;
-                message.channel.send("Name inserted!")
 
                 dbo.collection(`${currentCalendar}`).find({dayOfWeek:userInsert[1]},{ projection: {_id:0, name:1}}).toArray(async function(err, result){
                     if(err) throw err;
 
                     workers = result[0].name.join()
-                    console.log(workers);
                     
                     insertWeekday = userInsert[1]
-                    console.log(insertWeekday)
 
-                    if (userInsert[1] === "Monday"){
+                    if (userInsert[1] === "Monday" || userInsert[1] === "monday"){
                         mondayWorkers = workers
-                    } else if(userInsert[1] === "Tuesday") {
+                    } else if(userInsert[1] === "Tuesday" || userInsert[1] === "tuesday") {
                         tuesdayWorkers = workers
-                    } else if (userInsert[1] === "Wenesday"){
+                    } else if (userInsert[1] === "Wenesday"|| userInsert[1] === "wenesday"){
                         wenesdayWorkers = workers
-                    } else if (userInsert[1] === "Thursday") {
+                    } else if (userInsert[1] === "Thursday"|| userInsert[1] === "thursday") {
                         thursdayWorkers = workers
-                    } else if (userInsert[1] === "Friday") {
+                    } else if (userInsert[1] === "Friday"|| userInsert[1] === "friday") {
                         fridayWorkers = workers
                     }
 
-
+                    message.channel.send("Name inserted!")
                     db.close()
 
                     
@@ -283,7 +306,7 @@ client.on('message', message => {
 
                 console.log(result.value.name)
                 
-                if(userInsert[1] === "Monday"){
+                if(userInsert[1] === "Monday" || userInsert[1] === "monday"){
                     
                     const index = result.value.name.indexOf(userInsert[0])
 
@@ -295,7 +318,7 @@ client.on('message', message => {
                     mondayWorkers = workers
 
 
-                } else if(userInsert[1] === "Tuesday"){
+                } else if(userInsert[1] === "Tuesday" || userInsert[1] === "tuesday"){
                     const index = result.value.name.indexOf(userInsert[0])
 
                     if (index > -1) {
@@ -306,7 +329,7 @@ client.on('message', message => {
                     tuesdayWorkers = workers
 
 
-                } else if(userInsert[1] === "Wenesday"){
+                } else if(userInsert[1] === "Wenesday"|| userInsert[1] === "wenesday"){
                     const index = result.value.name.indexOf(userInsert[0])
 
                     if (index > -1) {
@@ -318,7 +341,7 @@ client.on('message', message => {
                     wenesdayWorkers = workers
 
 
-                } else if(userInsert[1] === "Thursday"){
+                } else if(userInsert[1] === "Thursday"|| userInsert[1] === "thursday"){
                     const index = result.value.name.indexOf(userInsert[0])
 
                     if (index > -1) {
@@ -330,7 +353,7 @@ client.on('message', message => {
                     thursdayWorkers = workers
 
 
-                } else if(userInsert[1] === "Friday"){
+                } else if(userInsert[1] === "Friday"|| userInsert[1] === "friday"){
                     const index = result.value.name.indexOf(userInsert[0])
 
                     if (index > -1) {
@@ -358,4 +381,4 @@ client.on('message', message => {
 
 // login to Discord with your app's token
 
-client.login('ODY3NTM0ODkxNTE0ODU1NDU1.YPig1A.m5VMcKVyjofwg20ZPBi9qVx83xk');
+client.login(BOTTOKEN);
