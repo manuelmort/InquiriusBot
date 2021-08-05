@@ -1,0 +1,8 @@
+$open-up-calendar sts
+$delete-calendar sts
+$create-calendar sts
+
+$insert Naji Monday
+$insert Manuel Monday
+
+$delete Manuel Monday

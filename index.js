@@ -8,8 +8,9 @@ contains commands:
 */
 var mongo = require('mongodb').MongoClient
 const { BOTTOKEN, DBTOKEN } = require('./config.json');
-const Discord = require('discord.js');
+const { Client, Collection, Intents } = require('discord.js');
 const emoji = require('node-emoji');
+const fs = require('fs');
 
 var url = DBTOKEN
 var currentCalendar = ''
@@ -23,113 +24,78 @@ var tuesdayWorkers = ["None"]
 var wenesdayWorkers = ["None"]
 var thursdayWorkers = ["None"]
 var fridayWorkers = ["None"]
+let prefix = '$';
+var incomingCommand;
 
 // create a new Discord client
-const client = new Discord.Client()
+const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.GUILDS_MESSAGES] });
+client.commands = new Collection();
 
-let prefix = '$'
 
 client.once('ready', () => {
 	console.log('Ready!')
 });
+
+client.on('message', async message => {
+	
+    if (!message.content.startsWith(prefix) || message.author.bot) return;
+
+    const args = message.content.trim().split(' ');
+	const userCommand = args.shift().toLowerCase(); 
+
+    
+
+    const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+
+    for (const file of commandFiles) {
+        const command = require(`./commands/${file}`);
+        // set a new item in the Collection
+        // with the key as the command name and the value as the exported module
+        if(command.name === userCommand){
+            client.commands.set(command.name, command);
+            console.log(command)
+
+            if(args){
+                command.argument = args.join()
+            }            
+        }
+
+     }   
+    if (!client.commands.has(userCommand)) return;
+
+	try {
+		await client.commands.get(userCommand).execute(message);
+	} catch (error) {
+		console.error(error);
+		await message.reply({ content: 'There was an error while executing this command!', ephemeral: true });
+	}
+    
+
+});
+
+
+
+
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
-
-//This will create a default empty calendar
-var newCalendar = [
-    {
-        id:1,
-        dayOfWeek: "Monday",
-        name: []
-        
-    },
-    {
-        id:2,
-        dayOfWeek: "Tuesday",
-        name: []
-    },
-    {
-        id:3,
-        dayOfWeek: "Wenesday",
-        name: []
-    },
-    {
-        id:4,
-        dayOfWeek: "Thursday",
-        name: []
-    },
-    {
-        id:5,
-        dayOfWeek: "Friday",
-        name: []
-    }
-];
 
 
 
 //Fold code if needed 
 client.on('message', message => {
 	if (!message.content.startsWith(prefix) || message.author.bot) return;
-
-	const args = message.content.slice(prefix.length).trim().split(' ');
-	const command = args.shift().toLowerCase();
-
 	// Using the new `command` variable, this makes it easier to manage!
 	// You can switch your other commands to this format as well
-	if (command === 'ping') {
-		message.channel.send('Pong.');
-
-	} 
+    const args = message.content.slice(prefix.length).trim().split(' ');
+	const command = args.shift().toLowerCase();
 
 // MARK CREATE NEW CALENDAR TEMPLATE
-    else if (command === 'create-calendar') {
-		if (!args.length) {
-			return message.channel.send(`You didn't provide any name, ${message.author}!`);
-		}
     
-        
-		message.channel.send(`Checking if calendar " ${args} " doesn't already exist....`);
-
-        mongo.connect(url, async function(err,db){
-            if(err) throw err;
-
-            var dbo = db.db(discordDB); //will create new database if this one doesnt exist
-            dbo.createCollection(`${args}`, function(err,res){
-                if(err){
-                    
-                    message.channel.send("Sorry there is already a calendar that exists!")
-                    console.log("calendar already created...")
-                    return;
-                }
-                
-
-                message.channel.send("Calendar created in database!");
-                message.channel.send("To access calendar, just say ```$open-up-calender <calendar name>```")
-
-                currentCalendar = `${args}`
-
-                dbo.collection(`${args}`).insertMany(newCalendar, async function(err,res) {
-                    if (err) throw err;
-                    console.log("new default template inserted!");
-                    
-                    dbo.collection(`${args}`).find({},{projection: {"_id":0, "dayOfWeek": 1}}).toArray(async function(err, result){
-                        if(err) throw err;
-        
-                        for(var i = 0; i < 5; i++){
-                            weekdays[i] = result[i].dayOfWeek
-                        } 
-                        db.close();
-                        
-                    })
-                })
-            })
-        })
-    }
 
 //MARK SHOWING CALENDARS IN DATABASE USING AN EMBEDDED MESSAGE
     
-    else if(command === 'show-me-calendars'){
+    if(command === 'show-me-calendars'){
 
         mongo.connect(url, async function(err,db){
             if(err) throw err;
