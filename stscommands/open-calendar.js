@@ -34,6 +34,10 @@ module.exports = {
         }
 
         currentCalendar = this.argument;
+        if (currentCalendar != "sts") {
+            interaction.reply("Woops, you didn't type the right calendar, check if any addition spaces")
+            return
+        }
         interaction.reply(`opening up calendar: ${currentCalendar}`);
 
         mongo.connect(DBTOKEN, async function(err,db){

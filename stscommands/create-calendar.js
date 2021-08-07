@@ -1,13 +1,8 @@
 var mongo = require('mongodb').MongoClient
 const { DBTOKEN } = require('../config.json');
-const { Client, Collection, Intents } = require('discord.js');
-const emoji = require('node-emoji');
 
-function capitalizeFirstLetter(string) {
-    return string.charAt(0).toUpperCase() + string.slice(1);
-}
 var discordDB = 'STScalendar'
-var weekDays=[]
+var newCalendar = ""
 
 var STScalendarTemplate = [
     {
@@ -52,10 +47,12 @@ module.exports = {
 			return message.channel.send(`You didn't provide any name, ${message.author}!`);
 		} else{
             newCalendar = this.argument
-            console.log(newCalendar)
         }
 
-  
+        if (newCalendar != "sts"){
+            interaction.reply("you didn't create a calendar under the name 'sts' \n check if there are any addition spaces")
+            return
+        }
 		interaction.reply(`Checking if calendar " ${newCalendar} " doesn't already exist....`);
 
         mongo.connect(DBTOKEN, async function(err,db){
