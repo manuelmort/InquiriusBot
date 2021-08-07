@@ -45,15 +45,14 @@ client.on('message', async message => {
 
     
 
-    const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+    const commandFiles = fs.readdirSync('./stscommands').filter(file => file.endsWith('.js'));
 
     for (const file of commandFiles) {
-        const command = require(`./commands/${file}`);
+        const command = require(`./stscommands/${file}`);
         // set a new item in the Collection
         // with the key as the command name and the value as the exported module
         if(command.name === userCommand){
             client.commands.set(command.name, command);
-            console.log(command)
 
             if(args){
                 command.argument = args.join()
@@ -134,51 +133,6 @@ client.on('message', message => {
     }
 
 
-//OPENS A CERTAIN CALENDAR AND READS AND DISPLAYS UPDATED INFORMATION
-     else if(command === 'open-up-calendar'){
-
-        if (!args.length) {
-			return message.channel.send(`You didn't provide any name, ${message.author}!`);
-		}
-        currentCalendar = args
-        message.channel.send(`opening up calendar: ${currentCalendar}`);
-
-        //If these variables are empty after deleting user, embed field value must be set to "None" to avoid null error
-        if(mondayWorkers === "" || mondayWorkers === " "){
-            mondayWorkers = "None"
-        } else if (tuesdayWorkers === "" || tuesdayWorkers === " ") {
-            tuesdayWorkers = "None"
-        } else if (wenesdayWorkers === ""|| wenesdayWorkers === " ") {
-            wenesdayWorkers = "None"
-        }else if (thursdayWorkers === "" || thursdayWorkers === " ") {
-            thursdayWorkers = "None"
-        }else if(fridayWorkers === "" || fridayWorkers === " ") {
-            fridayWorkers = "None"
-        }
-        
-        var calendarEmbed = {
-            color: 0x0099ff,
-            title: `${emoji.get('calendar')} ${args} Calendar`,
-            thumbnail: {
-                url: "https://d1yjjnpx0p53s8.cloudfront.net/styles/logo-thumbnail/s3/052016/untitled-1_11.png?itok=ccxA07m1"
-            },
-            description:'Our Calendar for the 5 day week!',
-            fields:[
-                {name: weekdays[0],  value: mondayWorkers, inline: true},
-                {name: weekdays[1], value:  tuesdayWorkers, inline: true},
-                {name: weekdays[2], value:  wenesdayWorkers, inline: true},
-                {name: weekdays[3], value: thursdayWorkers, inline: true},
-                {name: weekdays[4], value: fridayWorkers, inline: true}
-                ],
-            timestamp: new Date(),
-        }
-        message.channel.send({embed: calendarEmbed});
-        message.channel.send('To insert a name on a specific day, say: ```$insert <Your First Name> <Day of the Week>``` ')      
-        message.channel.send('To delete your name on a specific day, say: ```$delete <Your First Name> <Day of the Week>``` ')  
-
-    }
-
-
 //DELETES A CERTAIN CALENDAR
     else if(command === 'delete-calendar'){
         if (!args.length) {
@@ -202,7 +156,7 @@ client.on('message', message => {
     }
 
 //INSERTING USER NAME FROM DAY OF WORK (Still needs a way to display in embedded msg)
-    else if (command === 'insert'){
+   /* else if (command === 'insert'){
 
         if (!args.length) {
 			return message.channel.send(`You didn't provide your name, ${message.author}!`);
@@ -249,6 +203,7 @@ client.on('message', message => {
             
         }
     )}
+    */
 
 
 //DELETING USER NAME FROM DAY OF WORK (Still needs a way to display in embedded msg)
