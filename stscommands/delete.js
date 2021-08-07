@@ -1,6 +1,7 @@
 var mongo = require('mongodb').MongoClient
 const { DBTOKEN } = require('../config.json');
 
+
 var url = DBTOKEN;
 var discordDB = 'STScalendar';
 var currentCalendar = ""
@@ -15,16 +16,15 @@ function removeWhiteSpaceFromArray(array){
 }
 
 module.exports = {
-    name: "$insert", //command takes an arguement
-    description: "inserting",
+    name: "$delete",
+    description: "",
     argument: '',
     async execute(interaction){
         if (!this.argument) {
 			return interaction.reply("You didn't provide a name and calendar name");
         }
-        var userInsert = `${this.argument}`.split(",")
-        
-        
+        let userInsert = `${this.argument}`.split(",");
+
         //failSafing for any non capatalized first letters and whitespaces
         userInsert = removeWhiteSpaceFromArray(userInsert)  
         
@@ -32,20 +32,26 @@ module.exports = {
         userInsert[1] = capitalizeFirstLetter(userInsert[1]);
 
         currentCalendar = 'sts'
-        var object =  {dayOfWeek: userInsert[1]}
         
+        var object =  {dayOfWeek: userInsert[1]}
 
         mongo.connect(url, async function(err,db){ 
             if(err) throw err;
 
             var dbo = db.db(discordDB);
 
-            dbo.collection(currentCalendar).findOneAndUpdate(object,{$push:{name:userInsert[0]}}, function (err,res){
+            dbo.collection(currentCalendar).findOneAndUpdate(object,{$pull:{name:userInsert[0]}}, function (err,res){
                 if (err) throw err;
 
-                console.log("A name was inserted")
+                const index = res.value.name.indexOf(userInsert[0])
 
-                interaction.channel.send("Name inserted!")
+                if (index > -1) {
+                    //Test the splice, make sure it removes all strings with the same name
+                    res.value.name.splice(index,1)
+                }
+
+                console.log("A name was deleted")
+                interaction.channel.send("Name deleted!")
                 db.close()
                   
                 
@@ -53,5 +59,6 @@ module.exports = {
             })
             
         })
-    }   
+    } 
+
 }
