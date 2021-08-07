@@ -1,6 +1,5 @@
 var mongo = require('mongodb').MongoClient
 const { DBTOKEN } = require('../config.json');
-const { Client, Collection, Intents } = require('discord.js');
 const emoji = require('node-emoji');
 
 var url = DBTOKEN
@@ -9,11 +8,11 @@ var discordDB = "STScalendar"
 var weekdays = []
 var workers = []
 
-var mondayWorkers = "None";
-var tuesdayWorkers = "None";
-var wenesdayWorkers = "None";
-var thursdayWorkers = "None";
-var fridayWorkers = "None";
+var mondayWorkers = [];
+var tuesdayWorkers = [];
+var wenesdayWorkers = [];
+var thursdayWorkers = [];
+var fridayWorkers = [];
 
 var monday = "Monday";
 var tuesday = "Tuesday";
@@ -46,49 +45,116 @@ module.exports = {
                 //if successful res gives us an array of objects, ex: {dayOfWeek: 'Monday'}
                 for(var i = 0; i <5; i++){
                     
-                    weekdays[i] = res[i].dayOfWeek               
+                    weekdays[i] = res[i].dayOfWeek   
+                              
                 }
-               
+                
+                    
+                console.log("\n!!!Reading names in calendarDatabase!!!")
+                await dbo.collection(`${currentCalendar}`).find({dayOfWeek:weekdays[0]}, {projection: {_id:0, name:1}}).toArray(async function(err,res){
+                        
+                    if (err) throw err
+                    console.log(`Monday: ${res[0].name}`)
+                    mondayWorkers = res[0].name
+
+                    await dbo.collection(`${currentCalendar}`).find({dayOfWeek:weekdays[1]}, {projection: {_id:0, name:1}}).toArray(async function(err,res){
+                        
+                        if (err) throw err
+                        console.log(`Tuesday: ${res[0].name}`)
+                        tuesdayWorkers = res[0].name
+
+                        await dbo.collection(`${currentCalendar}`).find({dayOfWeek:weekdays[2]}, {projection: {_id:0, name:1}}).toArray(async function(err,res){
+                        
+                            if (err) throw err
+                            console.log(`Wenesday: ${res[0].name}`)
+                            wenesdayWorkers = res[0].name
+
+                            await dbo.collection(`${currentCalendar}`).find({dayOfWeek:weekdays[3]}, {projection: {_id:0, name:1}}).toArray(async function(err,res){
+                        
+                                if (err) throw err
+                                console.log(`Thursday: ${res[0].name}`)
+                                thursdayWorkers = res[0].name
+
+                                await dbo.collection(`${currentCalendar}`).find({dayOfWeek:weekdays[4]}, {projection: {_id:0, name:1}}).toArray(async function(err,res){
+                        
+                                    if (err) throw err
+                                    console.log(`Friday: ${res[0].name}`)
+                                    fridayWorkers = res[0].name
+
+                                        
+                                        mondayWorkers = mondayWorkers.join("\n")
+                                        tuesdayWorkers = tuesdayWorkers.join("\n")
+                                        wenesdayWorkers = wenesdayWorkers.join("\n")
+                                        thursdayWorkers = thursdayWorkers.join("\n")
+                                        fridayWorkers = fridayWorkers.join("\n")
+                                        
+
+                                        if(!mondayWorkers.length){
+                                            mondayWorkers = "None"
+                                        } 
+                                        if (!tuesdayWorkers.length) {
+                                            tuesdayWorkers = "None"
+                                        }
+                                        if (!wenesdayWorkers.length) {
+                                            wenesdayWorkers = "None"
+                                        }
+                                        if (!thursdayWorkers.length) {
+                                            thursdayWorkers = "None"
+                                        }
+                                        if(!fridayWorkers.length) {
+                                            fridayWorkers = "None"
+                                        }
+                         
+
+                                        
+                                        var calendarEmbed = {
+                                            color: 0x0099ff,
+                                            title: `${emoji.get('calendar')} ${currentCalendar.toUpperCase()} Calendar`,
+                                            thumbnail: {
+                                                url: "https://d1yjjnpx0p53s8.cloudfront.net/styles/logo-thumbnail/s3/052016/untitled-1_11.png?itok=ccxA07m1"
+                                            },
+                                            description:'Our Calendar for the 5 day week!',
+                                            fields:[
+                                                {name: monday,  value: mondayWorkers, inline: true},
+                                                {name: tuesday, value:  tuesdayWorkers, inline: true},
+                                                {name: wenesday, value:  wenesdayWorkers, inline: true},
+                                                {name: thursday, value: thursdayWorkers, inline: true},
+                                                {name: friday, value: fridayWorkers, inline: true}
+                                                ],
+                                            timestamp: new Date(),
+                                               
+                                        }
+                                        interaction.channel.send({embed: calendarEmbed});
+                                    
+
+                                    
+                                    db.close();
+            
+                                }); 
+        
+                            }); 
+    
+                        }); 
+
+                    }); 
+
+        
+                }); 
+                
+                
                 
 
+               
             })
-            var object = {dayOfWeek:weekdays[0]}
-            await dbo.collection(`${currentCalendar}`).find(object, {projection: {_id:0, name:1}}).toArray(async function(err,res){
-                console.log(res)
-            })
+            
+            
+            
+           
         })
         //If these variables are empty after deleting user, embed field value must be set to "None" to avoid null error
-        if(mondayWorkers === "" || mondayWorkers === " "){
-            mondayWorkers = "None"
-        } else if (tuesdayWorkers === "" || tuesdayWorkers === " ") {
-            tuesdayWorkers = "None"
-        } else if (wenesdayWorkers === ""|| wenesdayWorkers === " ") {
-            wenesdayWorkers = "None"
-        }else if (thursdayWorkers === "" || thursdayWorkers === " ") {
-            thursdayWorkers = "None"
-        }else if(fridayWorkers === "" || fridayWorkers === " ") {
-            fridayWorkers = "None"
-        }
+       
 
-
-        var calendarEmbed = {
-            color: 0x0099ff,
-            title: `${emoji.get('calendar')} ${this.argument} Calendar`,
-            thumbnail: {
-                url: "https://d1yjjnpx0p53s8.cloudfront.net/styles/logo-thumbnail/s3/052016/untitled-1_11.png?itok=ccxA07m1"
-            },
-            description:'Our Calendar for the 5 day week!',
-            fields:[
-                {name: monday,  value: mondayWorkers, inline: true},
-                {name: tuesday, value:  tuesdayWorkers, inline: true},
-                {name: wenesday, value:  wenesdayWorkers, inline: true},
-                {name: thursday, value: thursdayWorkers, inline: true},
-                {name: friday, value: fridayWorkers, inline: true}
-                ],
-            timestamp: new Date(),
-               
-        }
-        interaction.channel.send({embed: calendarEmbed});
-
+       
     }
+    
 }
