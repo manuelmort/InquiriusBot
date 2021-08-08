@@ -44,8 +44,16 @@ module.exports = {
     weekdays: [''],
 	async execute(interaction) {
 		if (!this.argument) {
-			return message.channel.send(`You didn't provide any name, ${message.author}!`);
-		} else{
+			return interaction.channel.send(`You didn't provide any name, ${interaction.author.id}!`);
+		}
+        //ONLY USE THIS CODE IF YOU HAVE TO
+        /*if(!interaction.author.id === 224051554582396929) {
+            
+            interaction.channel.send("Sorry you do not have permission to use this command")
+        }
+        */
+        
+        else{
             newCalendar = this.argument
         }
 
