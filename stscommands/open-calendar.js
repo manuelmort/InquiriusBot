@@ -10,13 +10,13 @@ var workers = []
 
 var mondayWorkers = [];
 var tuesdayWorkers = [];
-var wenesdayWorkers = [];
+var wednesdayWorkers = [];
 var thursdayWorkers = [];
 var fridayWorkers = [];
 
 var monday = "Monday";
 var tuesday = "Tuesday";
-var wenesday = "Wenesday";
+var wednesday = "Wednesday";
 var thursday = "Thursday";
 var friday = "Friday";
 
@@ -70,8 +70,8 @@ module.exports = {
                         await dbo.collection(`${currentCalendar}`).find({dayOfWeek:weekdays[2]}, {projection: {_id:0, name:1}}).toArray(async function(err,res){
                         
                             if (err) throw err
-                            console.log(`Wenesday: ${res[0].name}`)
-                            wenesdayWorkers = res[0].name
+                            console.log(`Wednesday: ${res[0].name}`)
+                            wednesdayWorkers = res[0].name
 
                             await dbo.collection(`${currentCalendar}`).find({dayOfWeek:weekdays[3]}, {projection: {_id:0, name:1}}).toArray(async function(err,res){
                         
@@ -88,7 +88,7 @@ module.exports = {
                                         
                                         mondayWorkers = mondayWorkers.join("\n")
                                         tuesdayWorkers = tuesdayWorkers.join("\n")
-                                        wenesdayWorkers = wenesdayWorkers.join("\n")
+                                        wednesdayWorkers = wenesdayWorkers.join("\n")
                                         thursdayWorkers = thursdayWorkers.join("\n")
                                         fridayWorkers = fridayWorkers.join("\n")
                                         
@@ -99,7 +99,7 @@ module.exports = {
                                         if (!tuesdayWorkers.length) {
                                             tuesdayWorkers = "None"
                                         }
-                                        if (!wenesdayWorkers.length) {
+                                        if (!wednesdayWorkers.length) {
                                             wenesdayWorkers = "None"
                                         }
                                         if (!thursdayWorkers.length) {
@@ -121,7 +121,7 @@ module.exports = {
                                             fields:[
                                                 {name: monday,  value: mondayWorkers, inline: true},
                                                 {name: tuesday, value:  tuesdayWorkers, inline: true},
-                                                {name: wenesday, value:  wenesdayWorkers, inline: true},
+                                                {name: wednesday, value:  wenesdayWorkers, inline: true},
                                                 {name: thursday, value: thursdayWorkers, inline: true},
                                                 {name: friday, value: fridayWorkers, inline: true}
                                                 ],

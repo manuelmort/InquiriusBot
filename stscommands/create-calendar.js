@@ -18,7 +18,7 @@ var STScalendarTemplate = [
     },
     {
         id:3,
-        dayOfWeek: "Wenesday",
+        dayOfWeek: "Wednesday",
         name: []
     },
     {
