@@ -88,7 +88,7 @@ module.exports = {
                                         
                                         mondayWorkers = mondayWorkers.join("\n")
                                         tuesdayWorkers = tuesdayWorkers.join("\n")
-                                        wednesdayWorkers = wenesdayWorkers.join("\n")
+                                        wednesdayWorkers = wednesdayWorkers.join("\n")
                                         thursdayWorkers = thursdayWorkers.join("\n")
                                         fridayWorkers = fridayWorkers.join("\n")
                                         
@@ -100,7 +100,7 @@ module.exports = {
                                             tuesdayWorkers = "None"
                                         }
                                         if (!wednesdayWorkers.length) {
-                                            wenesdayWorkers = "None"
+                                            wednesdayWorkers = "None"
                                         }
                                         if (!thursdayWorkers.length) {
                                             thursdayWorkers = "None"
@@ -121,7 +121,7 @@ module.exports = {
                                             fields:[
                                                 {name: monday,  value: mondayWorkers, inline: true},
                                                 {name: tuesday, value:  tuesdayWorkers, inline: true},
-                                                {name: wednesday, value:  wenesdayWorkers, inline: true},
+                                                {name: wednesday, value:  wednesdayWorkers, inline: true},
                                                 {name: thursday, value: thursdayWorkers, inline: true},
                                                 {name: friday, value: fridayWorkers, inline: true}
                                                 ],
