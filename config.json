@@ -1,0 +1,5 @@
+{
+    "DBTOKEN": "mongodb+srv://bluerare:manuel09!@cluster0.4zhfz.mongodb.net/myFirstDatabase?retryWrites=true&w=majority",
+    "BOTTOKEN":"ODY3NTM0ODkxNTE0ODU1NDU1.YPig1A.WjbxS77Nx1RHb4LxWVrwCdq930M",
+    "WEATHERTOKEN": "http://api.openweathermap.org/data/2.5/weather?zip=95608&appid=61e33e51be941db9fc3767a6dac0be12"
+}

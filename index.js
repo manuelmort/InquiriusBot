@@ -7,10 +7,10 @@ contains commands:
 
 */
 var mongo = require('mongodb').MongoClient
-const { BOTTOKEN, DBTOKEN } = require('./config.json');
+const { BOTTOKEN, DBTOKEN, WEATHERTOKEN } = require('./config.json');
 const { Client, Collection, Intents } = require('discord.js');
-const emoji = require('node-emoji');
 const fs = require('fs');
+const fetch = require('node-fetch')
 
 var url = DBTOKEN
 var currentCalendar = ''
@@ -27,8 +27,12 @@ var fridayWorkers = ["None"]
 let prefix = '$';
 var incomingCommand;
 
+
+
 // create a new Discord client
 const client = new Client({intents: [Intents.FLAGS.GUILDS, Intents.GUILDS_MESSAGES] });
+const commandFiles = fs.readdirSync('./stscommands').filter(file => file.endsWith('.js'));
+
 client.commands = new Collection();
 
 
@@ -45,9 +49,6 @@ client.on('message', async message => {
     const args = message.content.trim().split(' ');
 	const userCommand = args.shift().toLowerCase(); 
 
-    
-
-    const commandFiles = fs.readdirSync('./stscommands').filter(file => file.endsWith('.js'));
 
     for (const file of commandFiles) {
         const command = require(`./stscommands/${file}`);
@@ -73,6 +74,8 @@ client.on('message', async message => {
     
 
 });
+
+
 
 
 

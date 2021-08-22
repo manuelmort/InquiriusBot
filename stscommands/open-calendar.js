@@ -1,5 +1,6 @@
 var mongo = require('mongodb').MongoClient
-const { DBTOKEN } = require('../config.json');
+const { BOTTOKEN, DBTOKEN, WEATHERTOKEN } = require('../config.json');
+const fetch = require('node-fetch')
 const emoji = require('node-emoji');
 
 var url = DBTOKEN
@@ -7,6 +8,7 @@ var currentCalendar;
 var discordDB = "STScalendar"
 var weekdays = []
 var workers = []
+var zipcode = 95608
 
 var mondayWorkers = [];
 var tuesdayWorkers = [];
@@ -14,15 +16,98 @@ var wednesdayWorkers = [];
 var thursdayWorkers = [];
 var fridayWorkers = [];
 
+
 var monday = "Monday";
 var tuesday = "Tuesday";
 var wednesday = "Wednesday";
 var thursday = "Thursday";
 var friday = "Friday";
+var currentDay = ""
+
+var stslocation = ""
+var forecast = ""
+var currentTemp = ""
+var weatherDesc = ""
+var highTemp = ""
+var lowTemp = ""
+
+var weatherapi = WEATHERTOKEN
+var weatherEmoji = ""
 
 function capitalizeFirstLetter(string) {
     return string.charAt(0).toUpperCase() + string.slice(1);
 }
+
+function getCurrentDate() {
+    const week = ["Sunday", "Monday", "Tuesday","Wednesday","Thursday", "Friday","Saturday"]
+
+    var dayElement = new Date()
+
+    currentDay = week[dayElement.getDay()]
+    
+    return currentDay
+
+}
+
+getCurrentDate();
+
+//Weather feature for embedded message
+fetch(weatherapi)
+    .then(response => {
+        return response.json()
+    })
+    .then(parsedWeather => {
+        if(parsedWeather.cod === '404'){
+            console.log("Something went wrong")
+        } else {
+
+            stslocation = ` ${parsedWeather.name}`
+            forecast = ` ${parsedWeather.weather[0].main}`
+            currentTemp = ` ${(Math.round(((parsedWeather.main.temp - 273.15) * 9/5 +32 )))} °F`
+            highTemp = ` ${(Math.round(((parsedWeather.main.temp_max - 273.15) * 9/5 +32 )))} °F`
+            lowTemp = ` ${(Math.round(((parsedWeather.main.temp_min - 273.15) * 9/5 +32 )))} °F`
+
+
+            
+        }
+    })
+
+
+//getting weather emoji
+function getWeatherEmoji(emoj){
+    
+    if("Clouds"){
+        weatherDesc = "Cloudy!"
+        return emoji.get('sun_behind_cloud')
+
+    }else if ("Rain"){
+        weatherDesc = "Gonna Rain"
+        return emoji.get("rain_cloud")
+        
+    }else if ("Thunderstorm"){
+
+        weatherDesc = "It's Thor Day!"
+        return emoji.get("lightning")
+    }
+    else if ("Snow"){
+
+        weatherDesc = "Snowy"
+        return emoji.get("snow_cloud")
+    }
+    else if ("Fog") {
+
+        weatherDesc = "Foggy!"
+        return emoji.get("fog")
+    }
+    else {
+        weatherDesc = "Sunny"
+        return emoji.get('mostly_sunny')
+            
+    }
+}
+
+weatherEmoji = getWeatherEmoji(forecast)
+
 
 module.exports = {
     name: "$open-calendar", //takes in an argument
@@ -119,6 +204,11 @@ module.exports = {
                                             },
                                             description:'Our Calendar for the 5 day week!',
                                             fields:[
+                                                {name: "Location", value: "Carmichael", inline: true},
+                                                {name: "Today", value: currentDay, inline: true},
+                                                {name: "Weather Today!", value: `${weatherEmoji}` + weatherDesc + "  "+ `  CurrentTemp: ${emoji.get('thermometer')} `
+                                                + currentTemp
+                                                +"  "+ `${emoji.get('arrow_up')}` + highTemp + `${emoji.get('arrow_down')}`+ lowTemp},
                                                 {name: monday,  value: mondayWorkers, inline: true},
                                                 {name: tuesday, value:  tuesdayWorkers, inline: true},
                                                 {name: wednesday, value:  wednesdayWorkers, inline: true},
